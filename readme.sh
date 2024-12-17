@@ -1,11 +1,11 @@
+# Undistortion: convert fisheye images to pinhole with OpenCV
+python -m dslr.undistort dslr/configs/undistort.yml
+
 # Render RGB, Depth, Semantics for DSLR and iPhone
 python -m common.render common/configs/render.yml
 
 # Extract RGB frames, masks and depth frames from iPhone videos
 python -m iphone.prepare_iphone_data iphone/configs/prepare_iphone_data.yml
-
-# Undistortion: convert fisheye images to pinhole with OpenCV
-python -m dslr.undistort dslr/configs/undistort.yml
 
 # Downscale the DSLR images
 python -m dslr.downscale dslr/configs/downscale.yml

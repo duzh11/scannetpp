@@ -60,9 +60,10 @@ def main(args):
         plydata = PlyData.read(str(scene.scan_sem_mesh_path))
         semantic_mesh = plydata['vertex']['label']
         
-        pcd = o3d.io.read_point_cloud(str(scene.scan_mesh_path))
-        pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
-        pcd_normals = np.asarray(pcd.normals)
+        # * compute normal from mesh is better than from point cloud
+        mesh = o3d.io.read_triangle_mesh(str(scene.scan_sem_mesh_path))
+        mesh.compute_vertex_normals(normalized=True)
+        pcd_normals = np.asarray(mesh.vertex_normals)
         
         for device in render_devices:
             if device == "dslr":
@@ -74,11 +75,41 @@ def main(args):
 
             fx, fy, cx, cy = camera.params[:4]
             params = camera.params[4:]
-            camera_model = camera.model
+
+            # * Chose OPENCV_FISHEYE or PINHOLE, OPENCV_FISHEYE in colmap as default
+            if cfg.camera_model == camera.model:
+                pass
+            else:
+                # transform to PINHOLE
+                from dslr.undistort import compute_undistort_intrinsic
+                K = np.array(
+                    [
+                        [fx, 0, cx],
+                        [0, fy, cy],
+                        [0, 0, 1],
+                    ]
+                )
+                new_K = compute_undistort_intrinsic(K, camera.height, camera.width, params)
+                fx, fy, cx, cy = new_K[0, 0], new_K[1, 1], new_K[0, 2], new_K[1, 2]
+                params=np.array([0.0, 0.0, 0.0, 0.0])
+
+                # write camera model to colmap format
+                from common.utils.colmap import Camera
+                new_camera = Camera(id=1, model=cfg.camera_model, width=camera.width, height=camera.height, 
+                                    params=np.array([fx, fy, cx, cy, 0.0, 0.0, 0.0, 0.0]))
+                cameras = {1: new_camera}
+
+                undistort_colmap_dir = scene.dslr_dir / "colmap_undistorted" if device == "dslr" else scene.iphone_dir / "colmap_undistorted"
+                undistort_colmap_dir.mkdir(parents=True, exist_ok=True)
+                write_model(cameras, images, points3D, undistort_colmap_dir, ext=".txt")
+                write_model(cameras, images, points3D, undistort_colmap_dir, ext=".bin")
+                with open(undistort_colmap_dir / "readme.txt", 'w') as f:
+                    f.write("Transform the raw fisheye model to undistorted pinhole model, but the point2Ds are still in the fisheye ")
+
             render_engine.setupCamera(
                 camera.height, camera.width,
                 fx, fy, cx, cy,
-                camera_model,
+                cfg.camera_model,
                 params,      # Distortion parameters np.array([k1, k2, k3, k4]) or np.array([k1, k2, p1, p2])
             )
 
@@ -100,11 +131,11 @@ def main(args):
             mapping.update(raw_to_nyu40)
             mapping_dict = {}
 
-            rgb_dir = Path(cfg.output_dir) / scene_id / device / "render_rgb"
-            depth_dir = Path(cfg.output_dir) / scene_id / device / "render_depth"
-            depth_vis_dir = Path(cfg.output_dir) / scene_id / device / "render_depth_vis"
-            normal_dir = Path(cfg.output_dir) / scene_id / device / "render_normal"
-            normal_vis_dir = Path(cfg.output_dir) / scene_id / device / "render_normal_vis"
+            rgb_dir = Path(cfg.output_dir) / scene_id / device / f"render_rgb_{cfg.camera_model}"
+            depth_dir = Path(cfg.output_dir) / scene_id / device / f"render_depth_{cfg.camera_model}"
+            depth_vis_dir = Path(cfg.output_dir) / scene_id / device / f"render_depth_{cfg.camera_model}_vis"
+            normal_dir = Path(cfg.output_dir) / scene_id / device / f"render_normal_{cfg.camera_model}"
+            normal_vis_dir = Path(cfg.output_dir) / scene_id / device / f"render_normal_{cfg.camera_model}_vis"
             semantic_dir = Path(cfg.output_dir) / scene_id / device / cfg.render_semantics_dir
             semantic_vis_dir = Path(cfg.output_dir) / scene_id / device / (cfg.render_semantics_dir+'_vis')
 
@@ -128,6 +159,7 @@ def main(args):
                 depth = (depth.astype(np.float32) * 1000).clip(0, 65535).astype(np.uint16)
                 depth_vis = (depth.copy().astype(np.float32) / 1000.0)*50
                 depth_vis = cv2.applyColorMap(cv2.convertScaleAbs(depth_vis), cv2.COLORMAP_JET)
+                depth_vis[depth==0]=np.array([0, 0, 0])
 
                 depth_name = image.name.split(".")[0] + ".png"
                 imageio.imwrite(depth_dir / depth_name, depth)
@@ -140,13 +172,12 @@ def main(args):
                                             pcd_normals[vert_indices], 
                                             np.nan)
                     normal = np.nanmean(vert_normals, axis=-2)
-                    # normal = vert_normals[..., 0, :]
 
                     valid_mask = np.isfinite(normal)[..., 0]
-                    normal[~valid_mask] = np.array([1, 1, 1])
+                    normal[~valid_mask] = np.array([0, 0, 0])
 
                     normal_vis = ( normal/np.linalg.norm(normal, axis=-1, keepdims=True) + 1)*0.5
-                    normal_vis[~valid_mask] = np.array([1, 1, 1])
+                    normal_vis[~valid_mask] = np.array([0, 0, 0])
 
                     normal_name = image.name.split(".")[0] + ".png"
                     cv2.imwrite(normal_dir / normal_name, normal)

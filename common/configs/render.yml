@@ -1,6 +1,7 @@
 # folder where the data is downloaded
 data_root: ../scans/
 
+camera_model: PINHOLE
 # Set True to render depth for iphone frames
 render_iphone: False
 # Set True to render depth for dslr frames
@@ -8,9 +9,9 @@ render_dslr: True
 
 # render RGB and Depth as defualt
 ### Set True to render normals
-render_normals: False
+render_normals: True
 ### Set True to render semantics
-render_semantics: True
+render_semantics: False
 semantic_classes: ../scans/metadata/semantic_classes.txt
 render_semantics_dir: render_semantic-nyu40
 mapping_file: ../scans/metadata/semantic_benchmark/map_benchmark.csv
@@ -21,7 +22,7 @@ ignore_label: -100
 splits: [nvs_sem_train, nvs_sem_val]
 
 # Specify scene ids if you want to render depth for specific scenes
-scene_ids: [0d2ee665be, 3f15a9266d]
+scene_ids: [8b5caf3398, 116456116b, 13c3e046d7, 0a184cf634, 578511c8a9, 21d970d8de]
 
 # The near and far planes for the depth camera during rendering in meters.
 near: 0.05

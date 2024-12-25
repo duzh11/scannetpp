@@ -104,7 +104,7 @@ def main(args):
                 write_model(cameras, images, points3D, undistort_colmap_dir, ext=".txt")
                 write_model(cameras, images, points3D, undistort_colmap_dir, ext=".bin")
                 with open(undistort_colmap_dir / "readme.txt", 'w') as f:
-                    f.write("Transform the raw fisheye model to undistorted pinhole model, but the point2Ds are still in the fisheye ")
+                    f.write("Only modify the camera intrincics (pinhole camera model), other parameters are fixed from the original fisheye colmap model.")
 
             render_engine.setupCamera(
                 camera.height, camera.width,
@@ -179,9 +179,9 @@ def main(args):
                     normal_vis = ( normal/np.linalg.norm(normal, axis=-1, keepdims=True) + 1)*0.5
                     normal_vis[~valid_mask] = np.array([0, 0, 0])
 
-                    normal_name = image.name.split(".")[0] + ".png"
-                    cv2.imwrite(normal_dir / normal_name, normal)
-                    imageio.imwrite(normal_vis_dir / normal_name, (normal_vis*255).astype(np.uint8))
+                    normal_name = image.name.split(".")[0]
+                    np.savez(normal_dir / (normal_name+ ".npz"), normal)
+                    imageio.imwrite(normal_vis_dir / (normal_name+ ".png"), (normal_vis*255).astype(np.uint8))
 
                 # Semantics images
                 # Select vertices' semantic labels using majority vote

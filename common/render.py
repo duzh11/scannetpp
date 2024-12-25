@@ -180,7 +180,7 @@ def main(args):
                     normal_vis[~valid_mask] = np.array([0, 0, 0])
 
                     normal_name = image.name.split(".")[0]
-                    np.savez(normal_dir / (normal_name+ ".npz"), normal)
+                    np.savez(normal_dir / (normal_name+ ".npz"), normal.astype(np.float16))
                     imageio.imwrite(normal_vis_dir / (normal_name+ ".png"), (normal_vis*255).astype(np.uint8))
 
                 # Semantics images

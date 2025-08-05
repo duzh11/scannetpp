@@ -1,5 +1,5 @@
 # folder where the data is downloaded
-data_root: ../scans/
+data_root: ../scans-v1/
 
 camera_model: PINHOLE
 # Set True to render depth for iphone frames
@@ -12,21 +12,21 @@ render_dslr: True
 render_normals: True
 ### Set True to render semantics
 render_semantics: False
-semantic_classes: ../scans/metadata/semantic_classes.txt
-render_semantics_dir: render_semantic-nyu40
-mapping_file: ../scans/metadata/semantic_benchmark/map_benchmark.csv
-labels_path: ../scans/metadata/nyu40.txt
-palette_path: ../scans/metadata/nyu40_palette.txt
+semantic_classes: ../scans-v1/metadata/semantic_classes.txt
+render_semantics_dir: render_semantic
+mapping_file: ../scans-v1/metadata/semantic_benchmark/map_benchmark.csv
+labels_path: ../scans-v1/metadata/semantic_classes.txt
+palette_path: ../scans-v1/metadata/nyu40_palette.txt
 ignore_label: -100
 
 splits: [nvs_sem_train, nvs_sem_val]
 
 # Specify scene ids if you want to render depth for specific scenes
-scene_ids: [8b5caf3398, 116456116b, 13c3e046d7, 0a184cf634, 578511c8a9, 21d970d8de]
+scene_ids: [0a5c013435, 1d003b07bd, 5fb5d2dbf2, 7e09430da7, 66c98f4a9b]
 
 # The near and far planes for the depth camera during rendering in meters.
 near: 0.05
 far: 20.0
 
 # Output directory for the rendered depth images. If not given, the output will be saved to data folder in data_root
-output_dir: ../scans/data/
+output_dir: ../scans-v1/data/

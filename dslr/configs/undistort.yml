@@ -1,9 +1,9 @@
 # folder where the data is downloaded
-data_root: ../scans/
+data_root: ../scans-v1/
 
 splits: [nvs_sem_train, nvs_sem_val]
 
-scene_ids: [8b5caf3398, 116456116b, 13c3e046d7, 0a184cf634, 578511c8a9, 21d970d8de]
+scene_ids: [0a5c013435, 1d003b07bd, 5fb5d2dbf2, 7e09430da7, 66c98f4a9b]
 
 # The following paths should be given relative to the DATA_ROOT/dslr/
 # If not given, will use the default directory defined in ScannetppScene class

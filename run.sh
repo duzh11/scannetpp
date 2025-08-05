@@ -1,5 +1,5 @@
 # Undistortion: convert fisheye images to pinhole with OpenCV
-python -m dslr.undistort dslr/configs/undistort.yml
+# python -m dslr.undistort dslr/configs/undistort.yml
 
 # Render RGB, Depth, Semantics for DSLR and iPhone
 python -m common.render common/configs/render.yml
